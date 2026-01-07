@@ -14,7 +14,7 @@ def _unbroadcast(grad: np.ndarray, target_shape: tuple) -> np.ndarray:
     return grad
 
 
-class Add(Node):
+class Power(Node):
 
     def __init__(self,
                  a: Node,
@@ -23,7 +23,7 @@ class Add(Node):
                  name: str | None = None
                  ):
 
-        super().__init__(a, b, node_type="Add", node_id=node_id, name=name)
+        super().__init__(a, b, node_type="Power", node_id=node_id, name=name)
 
         self.a_shape = None
         self.b_shape = None
@@ -36,7 +36,7 @@ class Add(Node):
         self.a_shape = a_val.shape
         self.b_shape = b_val.shape
 
-        self.value = a_val + b_val
+        self.value = np.power(a_val, b_val)
         return self.value
 
     def backward(self, grad: np.ndarray | None = None):
@@ -46,8 +46,13 @@ class Add(Node):
 
         self.grad = grad
 
-        grad_a = grad
-        grad_b = grad
+        a_val = self.children[0].value
+        b_val = self.children[1].value
+
+        # d(a^b)/da = b * a^(b-1)
+        # d(a^b)/db = a^b * ln(a)
+        grad_a = grad * b_val * np.power(a_val, b_val - 1)
+        grad_b = grad * np.power(a_val, b_val) * np.log(np.maximum(a_val, 1e-10))
 
         grad_a = _unbroadcast(grad_a, self.a_shape)
         grad_b = _unbroadcast(grad_b, self.b_shape)

@@ -5,26 +5,24 @@ import numpy as np
 
 
 class Node(ABC):
-    """
-    Base class for nodes in computational graphs.
-    """
+
     _global_id_counter: int = 0
 
     def __init__(
             self,
             *children,
-            type: str,
-            id: int | None = None,
+            node_type: str,
+            node_id: int | None = None,
             name: str | None = None,
         ):
 
-        self.type: str = type
+        self.type: str = node_type
 
-        if id is None:
+        if node_id is None:
             self.id = Node._global_id_counter
             Node._global_id_counter += 1
         else:
-            self.id = id
+            self.id = node_id
 
         self.name: str = name if name is not None else f"{self.type}_{self.id}"
 
@@ -35,17 +33,13 @@ class Node(ABC):
         self.children.extend(children)
 
     def __repr__(self):
-        """
-        String representation of the Node.
-        """
+
         value_str: str = f"shape={self.value.shape}, dtype={self.value.dtype}" if self.value is not None else "value=None"
         grad_str: str = f"shape={self.grad.shape}, dtype={self.grad.dtype}" if self.grad is not None else "grad=None"
         return f"{self.type}(name='{self.name}', id={self.id}, value={value_str}, grad={grad_str}, children={len(self.children)})"
 
     def __str__(self):
-        """
-        Detailed string representation of the Node.
-        """
+
         if self.value is not None:
             if self.value.size <=10:
                 value_str = np.array2string(self.value, precision=4, suppress_small=True)
@@ -64,12 +58,8 @@ class Node(ABC):
 
     @abstractmethod
     def forward(self):
-        """
-        Perform the forward pass computation.
-        """
+        pass
 
     @abstractmethod
     def backward(self, grad):
-        """
-        Perform the backward pass computation.
-        """
+        pass

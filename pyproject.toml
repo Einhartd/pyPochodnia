@@ -8,4 +8,17 @@ dependencies = [
     "numpy>=2.3.5",
     "pandas>=2.3.3",
     "pydantic>=2.12.5",
+    "pytest>=9.0.2",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.5",
+]
+
