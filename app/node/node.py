@@ -5,71 +5,78 @@ import numpy as np
 
 
 class Node(ABC):
-    """
-    Base class for nodes in computational graphs.
-    """
+
     _global_id_counter: int = 0
 
     def __init__(
             self,
-            *children,
-            type: str,
-            id: int | None = None,
+            *parents,
+            node_type: str,
+            node_id: int | None = None,
             name: str | None = None,
         ):
 
-        self.type: str = type
+        self.type: str = node_type
 
-        if id is None:
+        if node_id is None:
             self.id = Node._global_id_counter
             Node._global_id_counter += 1
         else:
-            self.id = id
+            self.id = node_id
 
-        self.name: str = name if name is not None else f"{self.type}_{self.id}"
+        # Always include ID in the name to ensure uniqueness
+        if name is not None:
+            self.name: str = f"{name}_{self.id}"
+        else:
+            self.name: str = f"{self.type}_{self.id}"
 
         self.value: np.ndarray | None = None
         self.grad: np.ndarray | None = None
 
-        self.children: List[Node|None] = []
-        self.children.extend(children)
+        self.parents: List[Node|None] = []
+        self.parents.extend(parents)
 
-    def __repr__(self):
-        """
-        String representation of the Node.
-        """
-        value_str: str = f"shape={self.value.shape}, dtype={self.value.dtype}" if self.value is not None else "value=None"
-        grad_str: str = f"shape={self.grad.shape}, dtype={self.grad.dtype}" if self.grad is not None else "grad=None"
-        return f"{self.type}(name='{self.name}', id={self.id}, value={value_str}, grad={grad_str}, children={len(self.children)})"
+    def __repr__(self) -> str:
+        value_str = f"shape={self.value.shape}" if self.value is not None else "None"
+        grad_str = f"shape={self.grad.shape}" if self.grad is not None else "None"
+        return f"{self.type}('{self.name}', id={self.id}, val={value_str}, grad={grad_str})"
 
-    def __str__(self):
-        """
-        Detailed string representation of the Node.
-        """
+    def __str__(self) -> str:
+        # Format value
         if self.value is not None:
-            if self.value.size <=10:
+            if self.value.size <= 10:
                 value_str = np.array2string(self.value, precision=4, suppress_small=True)
             else:
-                value_str = f"array(shape={self.value.shape}, dtype={self.value.dtype})"
+                value_str = f"shape={self.value.shape}, dtype={self.value.dtype}"
         else:
             value_str = "None"
+
+        # Format gradient
         if self.grad is not None:
-            if self.grad.size <=10:
+            if self.grad.size <= 10:
                 grad_str = np.array2string(self.grad, precision=4, suppress_small=True)
             else:
-                grad_str = f"array(shape={self.grad.shape}, dtype={self.grad.dtype})"
+                grad_str = f"shape={self.grad.shape}, dtype={self.grad.dtype}"
         else:
             grad_str = "None"
-        return f"{self.name}: value={value_str}, grad={grad_str}, children={len(self.children)}"
+
+        return (
+            f"Node: {self.name}\n"
+            f"  ID:      {self.id}\n"
+            f"  Type:    {self.type}\n"
+            f"  Value:   {value_str}\n"
+            f"  Value shape: {self.value.shape}\n"
+            f"  Value dtype: {self.value.dtype}\n"
+            f"  Grad:    {grad_str}\n"
+            f"  Grad shape: {self.grad.shape}\n"
+            f"  Grad dtype: {self.grad.dtype}\n"
+            f"  Parents: {len(self.parents)}"
+        )
 
     @abstractmethod
-    def forward(self):
-        """
-        Perform the forward pass computation.
-        """
+    def forward(self) -> np.ndarray:
+        pass
 
     @abstractmethod
     def backward(self, grad):
-        """
-        Perform the backward pass computation.
-        """
+        pass

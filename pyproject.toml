@@ -5,7 +5,23 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "ipykernel>=7.1.0",
     "numpy>=2.3.5",
     "pandas>=2.3.3",
+    "pandas-stubs~=2.3.3",
     "pydantic>=2.12.5",
+    "pytest>=9.0.2",
+    "scikit-learn>=1.8.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.5",
+]
+
