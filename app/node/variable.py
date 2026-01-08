@@ -9,17 +9,17 @@ class Variable(Node):
             requires_grad: bool = False,
             node_id: int | None = None,
             name: str | None = None
-        ):
+        ) -> None:
 
         super().__init__(node_type="Variable", node_id=node_id, name=name)
         self.value: np.ndarray | None = np.array(value, dtype=np.float32) if value is not None else None
         self.requires_grad: bool = requires_grad
 
-    def forward(self):
+    def forward(self) -> np.ndarray | None:
 
         return self.value
 
-    def backward(self, grad: np.ndarray | None = None):
+    def backward(self, grad: np.ndarray | None = None) -> None:
 
         if self.requires_grad:
             if grad is None:
@@ -31,7 +31,7 @@ class Variable(Node):
                 self.grad += grad
         return
 
-    def zero_grad(self):
+    def zero_grad(self) -> None:
 
         if self.requires_grad:
             self.grad = np.zeros_like(self.value)

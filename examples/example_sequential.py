@@ -4,10 +4,10 @@ from app.models import Sequential
 from app.layers import Dense, Activation
 from app.node.operations.loss import MSELoss
 from app.optimizers import Adam
-
+from app.utils import accuracy, classification_report
 
 def main():
-    print("Przykład: Trening MLP na problemie XOR (Sequential API)")
+    print("Example: MLP in XOR problem")
 
     X = np.array([
         [0, 0],
@@ -23,7 +23,7 @@ def main():
         [0]
     ], dtype=np.float32)
 
-    print("\nDane treningowe (XOR):")
+    print("\nTraining dataset (XOR):")
     for i in range(len(X)):
         print(f"  X: {X[i]} -> y: {y[i]}")
 
@@ -39,19 +39,18 @@ def main():
     optimizer = Adam(model.parameters(), learning_rate=0.01)
 
     # Training loop
-    print("\nRozpoczynanie treningu...\n")
+    print("\nTrain start...\n")
     epochs = 5000
     print_every = 500
 
+    # Train on entire batch
+    x_var = Constant(X, name="x_batch")
+    y_target = Constant(y, name="y_batch")
+
+    output = model(x_var)
+
     for epoch in range(epochs):
         total_loss = 0.0
-
-        # Train on entire batch
-        x_var = Variable(X, name="x_batch")
-        y_target = Constant(y, name="y_batch")
-
-        # Forward pass
-        output = model(x_var)
 
         # Compute loss
         loss = MSELoss(output, y_target, name="loss")
@@ -65,23 +64,31 @@ def main():
         optimizer.step()
         optimizer.zero_grad()
 
-        # Print progress
+        # Print progress with metrics
         if (epoch + 1) % print_every == 0:
-            print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.6f}")
+            # Get current predictions
+            current_pred = output.value
+            train_acc = accuracy(y, current_pred, threshold=0.5)
+            print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.6f}, Accuracy: {train_acc:.4f}")
 
     # Test the trained model
     print("\n" + "="*70)
-    print("Testowanie wytrenowanego modelu:")
+    print("Test of trained model:")
     print("="*70)
 
+    predictions = []
     for i in range(len(X)):
         x_var = Variable(X[i:i+1], name=f"test_x_{i}")
         output = model(x_var)
         pred = output.forward()
+        predictions.append(pred[0][0])
 
-        print(f"X: {X[i]} -> Predykcja: {pred[0][0]:.4f}, Oczekiwane: {y[i][0]}")
+        print(f"X: {X[i]} -> Y_pred: {pred[0][0]:.4f}, Y: {y[i][0]}")
 
-    print("\n" + "="*70)
+    # Calculate and display final metrics
+    predictions = np.array(predictions).reshape(-1, 1)
+    print("\n" + classification_report(y, predictions, threshold=0.5))
+    print()
 
 
 if __name__ == "__main__":

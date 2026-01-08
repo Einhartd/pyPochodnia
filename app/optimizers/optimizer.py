@@ -1,12 +1,12 @@
 import numpy as np
 from typing import List
-from app.node import Variable
+from app.node import Node
 
 
 class SGD:
 
     def __init__(self,
-                 parameters: List[Variable],
+                 parameters: List[Node],
                  learning_rate: float = 0.01,
                  momentum: float = 0.0
                  ):
@@ -49,7 +49,7 @@ class SGD:
 class Adam:
 
     def __init__(self,
-                 parameters: List[Variable],
+                 parameters: List[Node],
                  learning_rate: float = 0.001,
                  beta1: float = 0.9,
                  beta2: float = 0.999,

@@ -1,12 +1,10 @@
 import numpy as np
-from app.node import Variable
+from typing import Optional, List
+from app.node import Variable, Node
 from app.node.operations.arithmetic import MatMul, Add
 
 
 class Dense:
-    """
-    Dense (Fully Connected) layer.
-    """
 
     def __init__(self,
                  input_size: int,
@@ -14,20 +12,12 @@ class Dense:
                  weight_init: str = "xavier",
                  use_bias: bool = True,
                  name: str = "Dense"
-                 ):
-        """
-        Initialize Dense layer.
+                 ) -> None:
 
-        :param input_size: Number of input features
-        :param output_size: Number of output features
-        :param weight_init: Weight initialization method ('xavier', 'he', 'normal')
-        :param use_bias: Whether to use bias
-        :param name: Name of the layer
-        """
-        self.input_size = input_size
-        self.output_size = output_size
-        self.use_bias = use_bias
-        self.name = name
+        self.input_size: int = input_size
+        self.output_size: int = output_size
+        self.use_bias: bool = use_bias
+        self.name: str = name
 
         # Initialize weights
         if weight_init == "xavier":
@@ -41,7 +31,7 @@ class Dense:
         else:
             raise ValueError(f"Unknown weight initialization: {weight_init}")
 
-        self.W = Variable(
+        self.W: Variable = Variable(
             value=W.astype(np.float32),
             requires_grad=True,
             name=f"{name}_W"
@@ -49,7 +39,7 @@ class Dense:
 
         # Initialize bias
         if use_bias:
-            self.b = Variable(
+            self.b: Variable | None = Variable(
                 value=np.zeros((1, output_size), dtype=np.float32),
                 requires_grad=True,
                 name=f"{name}_b"
@@ -57,13 +47,8 @@ class Dense:
         else:
             self.b = None
 
-    def forward(self, x: Variable):
-        """
-        Forward pass through the layer.
+    def forward(self, x: Node) -> Node:
 
-        :param x: Input variable
-        :return: Output node
-        """
         # Compute x @ W
         output = MatMul(x, self.W, name=f"{self.name}_matmul")
 
@@ -73,27 +58,19 @@ class Dense:
 
         return output
 
-    def __call__(self, x: Variable):
-        """
-        Allow calling the layer like a function.
-        """
+    def __call__(self, x: Node) -> Node:
+
         return self.forward(x)
 
-    def parameters(self):
-        """
-        Get all trainable parameters of the layer.
+    def parameters(self) -> List[Variable]:
 
-        :return: List of Variable nodes (weights and biases)
-        """
         if self.use_bias:
             return [self.W, self.b]
         else:
             return [self.W]
 
-    def zero_grad(self):
-        """
-        Reset gradients of all parameters to zero.
-        """
+    def zero_grad(self) -> None:
+
         self.W.zero_grad()
         if self.use_bias:
             self.b.zero_grad()

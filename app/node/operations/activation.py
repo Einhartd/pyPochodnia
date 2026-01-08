@@ -8,30 +8,30 @@ class ReLU(Node):
                  x: Node,
                  node_id: int | None = None,
                  name: str | None = None
-                 ):
+                 ) -> None:
 
         super().__init__(x, node_type="ReLU", node_id=node_id, name=name)
 
-    def forward(self):
+    def forward(self) -> np.ndarray:
 
         # f(x) = max(0,x)
-        x_val = self.children[0].forward()
+        x_val = self.parents[0].forward()
         self.value = np.maximum(0, x_val)
         return self.value
 
-    def backward(self, grad: np.ndarray | None = None):
+    def backward(self, grad: np.ndarray | None = None) -> None:
 
         if grad is None:
             grad = np.ones_like(self.value)
 
         self.grad = grad
 
-        x_val = self.children[0].value
+        x_val = self.parents[0].value
 
         # Gradient: 1 if x > 0, else 0
         grad_x = grad * (x_val > 0).astype(np.float32)
 
-        self.children[0].backward(grad_x)
+        self.parents[0].backward(grad_x)
 
 
 class Sigmoid(Node):
@@ -40,20 +40,20 @@ class Sigmoid(Node):
                  x: Node,
                  node_id: int | None = None,
                  name: str | None = None
-                 ):
+                 ) -> None:
 
         super().__init__(x, node_type="Sigmoid", node_id=node_id, name=name)
 
-    def forward(self):
+    def forward(self) -> np.ndarray:
 
-        x_val = self.children[0].forward()
+        x_val = self.parents[0].forward()
         # Clip to prevent overflow
         x_val = np.clip(x_val, -500, 500)
         # f(x) = 1 / (1 + exp(-x))
         self.value = 1.0 / (1.0 + np.exp(-x_val))
         return self.value
 
-    def backward(self, grad: np.ndarray | None = None):
+    def backward(self, grad: np.ndarray | None = None) -> None:
 
         if grad is None:
             grad = np.ones_like(self.value)
@@ -64,7 +64,7 @@ class Sigmoid(Node):
         sigmoid_grad = self.value * (1.0 - self.value)
         grad_x = grad * sigmoid_grad
 
-        self.children[0].backward(grad_x)
+        self.parents[0].backward(grad_x)
 
 
 class Tanh(Node):
@@ -73,18 +73,18 @@ class Tanh(Node):
                  x: Node,
                  node_id: int | None = None,
                  name: str | None = None
-                 ):
+                 ) -> None:
 
         super().__init__(x, node_type="Tanh", node_id=node_id, name=name)
 
-    def forward(self):
+    def forward(self) -> np.ndarray:
 
-        x_val = self.children[0].forward()
+        x_val = self.parents[0].forward()
         # f(x) = tanh(x)
         self.value = np.tanh(x_val)
         return self.value
 
-    def backward(self, grad: np.ndarray | None = None):
+    def backward(self, grad: np.ndarray | None = None) -> None:
 
         if grad is None:
             grad = np.ones_like(self.value)
@@ -95,7 +95,7 @@ class Tanh(Node):
         tanh_grad = 1.0 - self.value ** 2
         grad_x = grad * tanh_grad
 
-        self.children[0].backward(grad_x)
+        self.parents[0].backward(grad_x)
 
 
 class Softmax(Node):
@@ -105,14 +105,14 @@ class Softmax(Node):
                  axis: int = -1,
                  node_id: int | None = None,
                  name: str | None = None
-                 ):
+                 ) -> None:
 
         super().__init__(x, node_type="Softmax", node_id=node_id, name=name)
-        self.axis = axis
+        self.axis: int = axis
 
-    def forward(self):
+    def forward(self) -> np.ndarray:
 
-        x_val = self.children[0].forward().value
+        x_val = self.parents[0].forward()
 
         # Subtract max for numerical stability
         x_shifted = x_val - np.max(x_val, axis=self.axis, keepdims=True)
@@ -122,7 +122,7 @@ class Softmax(Node):
 
         return self.value
 
-    def backward(self, grad: np.ndarray | None = None):
+    def backward(self, grad: np.ndarray | None = None) -> None:
 
         if grad is None:
             grad = np.ones_like(self.value)
@@ -132,5 +132,5 @@ class Softmax(Node):
         s = self.value
         grad_x = s * (grad - np.sum(grad * s, axis=self.axis, keepdims=True))
 
-        self.children[0].backward(grad_x)
+        self.parents[0].backward(grad_x)
 

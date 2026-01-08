@@ -13,7 +13,7 @@ class Sequential:
 
         self.layers.append(layer)
 
-    def forward(self, x: Variable) -> Node:
+    def forward(self, x: Node) -> Node:
 
         output = x
 
@@ -22,11 +22,11 @@ class Sequential:
 
         return output
 
-    def __call__(self, x: Variable) -> Node:
+    def __call__(self, x: Node) -> Node:
 
         return self.forward(x)
 
-    def parameters(self) -> List[Variable]:
+    def parameters(self) -> List[Node]:
 
         params = []
         for layer in self.layers:
