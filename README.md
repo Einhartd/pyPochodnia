@@ -14,7 +14,7 @@ pyPochodnia is a PyTorch-like deep learning framework implemented from scratch i
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/pyPochodnia.git
+git clone https://github.com/Einhartd/pyPochodnia.git
 cd pyPochodnia
 pip install -r requirements.txt
 ```
